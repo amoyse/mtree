@@ -1,8 +1,10 @@
 
 
+use clap::error::Result;
 use clap::Parser;
-use walkdir::{DirEntry, WalkDir};
-
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::io;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -22,30 +24,26 @@ struct Args {
 }
 
 
-fn is_hidden(entry: &DirEntry) -> bool {
-    entry.file_name()
-         .to_str()
-         .map(|s| s.starts_with("."))
-         .unwrap_or(false)
-}
+fn walk_dir(path: &Path) -> io::Result<()> {
+    for entry in fs::read_dir(path)? {
+        let path = entry?.path();
 
-fn cut_first_two_chars(path: &str) -> &str {
-    let mut path_string = path;
-    path_string = &path_string[2..];
-    path_string
-}
+        println!("{}", path.display());
 
-
-fn main() {
-    let args = Args::parse();
-    let ignore_dir = args.ignore;
-    for entry in WalkDir::new(".").into_iter().filter_map(|e| e.ok()) {
-        let full_path = entry.path().to_str().unwrap();
-        if full_path.chars().count() > 2 {
-            let new_path = cut_first_two_chars(full_path);
-            if !new_path.starts_with(".") {
-                println!("{}", new_path);
-            }
+        if path.is_dir() {
+            walk_dir(&path)?;
         }
     }
+
+    Ok(())
+}
+
+
+fn main() -> io::Result<()> {
+    let args = Args::parse();
+    let ignore_dir = args.ignore;
+
+    let start_path = Path::new(".");
+
+    walk_dir(start_path)
 }
