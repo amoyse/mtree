@@ -1,9 +1,5 @@
-
-
-use clap::error::Result;
 use clap::Parser;
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::io;
 
 #[derive(Parser, Debug)]
@@ -23,8 +19,13 @@ struct Args {
     ignore: String,
 }
 
+struct Counts {
+    dirs: i32,
+    files: i32
+}
 
-fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ignore_dir: &str) -> io::Result<()> {
+
+fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ignore_dir: &str, counts: &mut Counts) -> io::Result<()> {
 
     // Sort list of paths
     let mut paths: Vec<_> = fs::read_dir(start_dir).unwrap().map(|r| r.unwrap()).collect();
@@ -42,20 +43,24 @@ fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ig
         if (entity.starts_with(".") && !all) || entity == ignore_dir {
             continue;
         }
+        if path.path().is_dir() {
+            counts.dirs += 1;
+        } else {
+            counts.files += 1;
+        }
 
         if it.peek().is_none() {
             println!("{}└── {}", prefix, entity);
             if path.path().is_dir() {
-                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir)?;
+                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir, counts)?;
             }
         } else {
             println!("{}├── {}", prefix, entity);
             if path.path().is_dir() {
-                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir)?;
+                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir, counts)?;
             }
         }
     }
-
     Ok(())
 }
 
@@ -68,6 +73,10 @@ fn main() -> io::Result<()> {
 
     let start_path = ".";
 
+    let mut counts = Counts { dirs : 0, files : 0 };
+
     println!(".");
-    walk_dir(start_path, "", all, only_directories, &ignore_dir)
+    walk_dir(start_path, "", all, only_directories, &ignore_dir, &mut counts)?;
+    println!("\n{} directories, {} files", counts.dirs, counts.files);
+    Ok(())
 }
