@@ -24,29 +24,31 @@ struct Args {
 }
 
 
-fn walk_dir(path: &Path) -> io::Result<()> {
+fn walk_dir(start_dir: &str, prefix: &str) -> io::Result<()> {
 
     // Sort list of paths
-    let mut paths: Vec<_> = fs::read_dir(path).unwrap().map(|r| r.unwrap()).collect();
+    let mut paths: Vec<_> = fs::read_dir(start_dir).unwrap().map(|r| r.unwrap()).collect();
     paths.sort_by_key(|dir| dir.path());
 
     let mut it = paths.iter().peekable();
 
     while let Some(path) = it.next() {
+        let entity = path.file_name().into_string().unwrap();
+        if entity.starts_with(".") {
+            continue;
+        }
         if it.peek().is_none() {
-            println!("Last element {}", path.path().display());
+            println!("{}└── {}", prefix, entity);
+            if path.path().is_dir() {
+                walk_dir(&format!("{}/{}", start_dir, entity), "    ")?;
+            }
+        } else {
+            println!("{}├── {}", prefix, entity);
+            if path.path().is_dir() {
+                walk_dir(&format!("{}/{}", start_dir, entity), "│   ")?;
+            }
         }
     }
-
-    // for path in paths {
-    //
-    //     let path = path.path();
-    //     println!("{}", path.display());
-    //
-    //     if path.is_dir() {
-    //         walk_dir(&path)?;
-    //     }
-    // }
 
     Ok(())
 }
@@ -56,7 +58,8 @@ fn main() -> io::Result<()> {
     let args = Args::parse();
     let ignore_dir = args.ignore;
 
-    let start_path = Path::new(".");
+    let start_path = ".";
 
-    walk_dir(start_path)
+    println!(".");
+    walk_dir(start_path, "")
 }
