@@ -43,7 +43,9 @@ fn main() {
         let full_path = entry.path().to_str().unwrap();
         if full_path.chars().count() > 2 {
             let new_path = cut_first_two_chars(full_path);
-            println!("{}", new_path);
+            if !new_path.starts_with(".") {
+                println!("{}", new_path);
+            }
         }
     }
 }
