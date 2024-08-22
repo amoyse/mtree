@@ -25,15 +25,28 @@ struct Args {
 
 
 fn walk_dir(path: &Path) -> io::Result<()> {
-    for entry in fs::read_dir(path)? {
-        let path = entry?.path();
 
-        println!("{}", path.display());
+    // Sort list of paths
+    let mut paths: Vec<_> = fs::read_dir(path).unwrap().map(|r| r.unwrap()).collect();
+    paths.sort_by_key(|dir| dir.path());
 
-        if path.is_dir() {
-            walk_dir(&path)?;
+    let mut it = paths.iter().peekable();
+
+    while let Some(path) = it.next() {
+        if it.peek().is_none() {
+            println!("Last element {}", path.path().display());
         }
     }
+
+    // for path in paths {
+    //
+    //     let path = path.path();
+    //     println!("{}", path.display());
+    //
+    //     if path.is_dir() {
+    //         walk_dir(&path)?;
+    //     }
+    // }
 
     Ok(())
 }
