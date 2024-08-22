@@ -40,12 +40,12 @@ fn walk_dir(start_dir: &str, prefix: &str) -> io::Result<()> {
         if it.peek().is_none() {
             println!("{}└── {}", prefix, entity);
             if path.path().is_dir() {
-                walk_dir(&format!("{}/{}", start_dir, entity), "    ")?;
+                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix))?;
             }
         } else {
             println!("{}├── {}", prefix, entity);
             if path.path().is_dir() {
-                walk_dir(&format!("{}/{}", start_dir, entity), "│   ")?;
+                walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix))?;
             }
         }
     }
