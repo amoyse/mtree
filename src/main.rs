@@ -1,6 +1,7 @@
 use clap::Parser;
 use std::fs;
 use std::io;
+use std::process;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -47,6 +48,11 @@ fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ig
             counts.dirs += 1;
         } else {
             counts.files += 1;
+        }
+
+        if counts.dirs > 5000 || counts.files > 5000 {
+            eprintln!("Error: too many elements. The tree is too big, don't run so high up the filesystem!");
+            process::exit(1);
         }
 
         if it.peek().is_none() {
