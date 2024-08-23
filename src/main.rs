@@ -2,6 +2,7 @@ use clap::Parser;
 use std::fs;
 use std::io;
 use std::process;
+use colored::Colorize;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -66,18 +67,22 @@ fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ig
         }
 
         if it.peek().is_none() {
-            println!("{}└── {}", prefix, entity);
             if path.path().is_dir() {
+                println!("{}└── {}", prefix, entity.blue().bold());
                 if depth < counts.max_depth {
                     walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir, counts, depth + 1)?;
                 }
+            } else {
+                println!("{}└── {}", prefix, entity);
             }
         } else {
-            println!("{}├── {}", prefix, entity);
             if path.path().is_dir() {
+                println!("{}├── {}", prefix, entity.blue().bold());
                 if depth < counts.max_depth {
                     walk_dir(&format!("{}/{}", start_dir, entity), &format!("{}│   ", prefix), all, only_directories, ignore_dir, counts, depth + 1)?;
                 }
+            } else {
+                println!("{}├── {}", prefix, entity);
             }
         }
     }
