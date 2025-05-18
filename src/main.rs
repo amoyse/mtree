@@ -8,6 +8,10 @@ use colored::Colorize;
 #[command(version, about, long_about = None)]
 struct Args {
 
+    /// Supply the relative path to directory to run mtree on
+    #[arg(value_name = "directory", default_value = ".")]
+    which_dir: String,
+
     /// Display hidden files too
     #[arg(short)]
     all: bool,
@@ -93,15 +97,16 @@ fn walk_dir(start_dir: &str, prefix: &str, all: bool, only_directories: bool, ig
 fn main() -> io::Result<()> {
     let args = Args::parse();
     let ignore_dir = args.ignore;
+    let which_dir = args.which_dir;
     let all = args.all;
     let only_directories = args.directories;
     let max_depth = args.max_depth;
 
-    let start_path = ".";
+    let start_path = &which_dir;
 
     let mut counts = Counts { dirs : 0, files : 0, max_depth};
 
-    println!(".");
+    println!("{}", which_dir);
     walk_dir(start_path, "", all, only_directories, &ignore_dir, &mut counts, 0)?;
     println!("\n{} directories, {} files", counts.dirs, counts.files);
     Ok(())
